@@ -1,0 +1,10 @@
+CCFLAGS += -fPIC ;
+#CCFLAGS  += -rdynamic ;
+Library libg.a : g.c ;
+
+LINKFLAGS on libf.so += -shared -Wl,-soname,libf.so,--whole-archive,libg.a,--no-whole-archive -fPIC ;
+LINKLIBS on libf.so += libg.a ;
+Main libf.so : f.c ;
+
+Main exec : main.c ;
+LINKLIBS on exec += -lf -L ./ ;

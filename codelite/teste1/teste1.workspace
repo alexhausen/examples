@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Workspace Name="teste1" Database="">
+  <Project Name="teste1" Path="teste1.project" Active="No"/>
+  <Project Name="certi_smart_platform" Path="../../../../certi_smart_platform/certi_smart_platform/certi_smart_platform.project" Active="Yes"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Project Name="teste1" ConfigName="Debug"/>
+      <Project Name="certi_smart_platform" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Project Name="teste1" ConfigName="Release"/>
+      <Project Name="certi_smart_platform" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>

@@ -1,0 +1,16 @@
+http://www.rpatk.net/web/en/parsecustom.php
+
+ON(1000),OFF(1000),ON(500),OFF(500),ON(1000),OFF(1000),R
+ON(1),OFF(2),ON(3),OFF(4),ON(5),OFF(6),R
+ON(1),OFF(2),IDLE(3),R
+
+On ::= 'ON'
+Off ::= 'OFF'
+Repeat ::= 'R'
+Idle ::= 'IDLE'
+Inactive ::= <Idle> '(' [0-9]+ ')'
+Active ::= <On> '(' [0-9]+ ')' | <Off> '(' [0-9]+ ')'
+Sequence ::= <Active> (',' <Active>)*
+Repetition ::= '[' <Sequence> ']' [0-9]+
+Cycle ::= <Sequence> | <Repetition>
+Cadence ::= <Cycle> (',' <Cycle>)* (',' <Inactive>)? (',' <Repeat>)?

@@ -1,0 +1,188 @@
+// EBNF
+// On ::= 'ON'
+// Off ::= 'OFF'
+// Repeat ::= 'R'
+// Idle ::= 'IDLE'
+// Inactive ::= <Idle> '(' [0-9]+ ')'
+// Active ::= <On> '(' [0-9]+ ')' | <Off> '(' [0-9]+ ')'
+// Cycle ::= <On> '(' [0-9]+ ')'
+// Sequence ::= <Cycle> (',' <Cycle>)*
+// Repetition ::= '[' <Sequence> ']' [0-9]+
+// Cycle ::= <Sequence> | <Repetition>
+// Cadence ::= <Cycle> (',' <Cycle>)* (',' <Inactive>)? (',' <Repeat>)?
+
+#include <cassert>
+#include <cmath>
+
+#include <iostream>
+#include <string>
+
+#include <boost/spirit/include/qi.hpp>
+#include <boost/bind.hpp>
+
+#include "snd.h"
+
+static const int kSampleRate = 8000.0;
+static const double kAmplitude = 1.0 * 0x7F000000;
+static const double kLeftFreq = 425.0 / kSampleRate;
+
+class Cycle {
+public:
+	enum cycle_type { kOn, kOff };
+
+	Cycle(cycle_type t, int d) : type_(t), duration_(d) {
+	}
+
+	int NumberOfSamples() const {
+		return duration_ / 1000.0 * kSampleRate;
+	}
+
+	cycle_type type() const {
+		return type_;
+	}
+
+private:
+	cycle_type type_;
+	int duration_;
+};
+
+class Cadence {
+public:
+	Cadence() : repeat_(false), inactive_(0) {
+	}
+
+	void AddCycle(Cycle::cycle_type type, int duration) {
+		Cycle cycle(type, duration);
+		cycles_.push_back(cycle);
+	}
+
+	void set_repeat(bool r) {
+		repeat_ = r;
+	}
+
+	void set_inactive(int i) {
+		inactive_ = i;
+	}
+
+	int TotalSamples() const {
+		int count = 0;
+		std::vector<Cycle>::const_iterator it = cycles_.begin();
+		for (; it != cycles_.end(); ++it) {
+			const Cycle& c = *it;
+			count += c.NumberOfSamples();
+		}
+		return count;
+	}
+
+	std::vector<Cycle> cycles() const {
+		return cycles_;
+	}
+
+private:
+	std::vector<Cycle> cycles_;
+	bool repeat_;
+	int inactive_;
+};
+
+namespace client {
+
+namespace qi = boost::spirit::qi;
+namespace ascii = boost::spirit::ascii;
+
+template <typename Iterator>
+struct Parser : qi::grammar<Iterator, ascii::space_type> {
+
+	Parser(Cadence& cad) : Parser::base_type(cadence) {
+		using qi::uint_;
+		on =  qi::lit("ON");
+		off = qi::lit("OFF");
+		repeat = qi::lit("R");
+		idle = qi::lit("IDLE");
+		inactive = idle >> '(' >> uint_  [ boost::bind(&Cadence::set_inactive, &cad, _1) ] >> ')';
+		active = on >> '(' >> uint_ [ boost::bind(&Cadence::AddCycle, &cad, Cycle::kOn, _1) ] >> ')' //cad.add(on, duration)
+			| off >> '(' >> uint_ [ boost::bind(&Cadence::AddCycle, &cad, Cycle::kOff, _1) ] >> ')'; //cad.add(off, duration)
+		sequence = active >> *(',' >> active);
+		repetition = '[' >> sequence >> ']' >> uint_;
+		cycle = sequence | repetition;
+		cadence = cycle >> *(',' >> cycle)
+			>> -(',' >> inactive)
+			>> -(',' >> repeat [ boost::bind(&Cadence::set_repeat, &cad, true) ] );
+	}
+
+	qi::rule<Iterator, ascii::space_type> on;
+	qi::rule<Iterator, ascii::space_type> off;
+	qi::rule<Iterator, ascii::space_type> repeat;
+	qi::rule<Iterator, ascii::space_type> idle;
+	qi::rule<Iterator, ascii::space_type> inactive;
+	qi::rule<Iterator, ascii::space_type> active;
+	qi::rule<Iterator, ascii::space_type> sequence;
+	qi::rule<Iterator, ascii::space_type> repetition;
+	qi::rule<Iterator, ascii::space_type> cycle;
+	qi::rule<Iterator, ascii::space_type> cadence;	
+};
+
+}
+
+int main(int argc, char** argv) {
+
+	std::string str;
+	std::string filename;
+	if (argc == 1) {
+		str = "ON(1000),OFF(1000),ON(500),OFF(500),ON(1000),OFF(1000),R";
+		filename = "output.wav";
+	} else if (argc == 3) {
+		str = argv[1];
+		filename = argv[2];
+	} else {
+		std::cout << "Wrong number of parameters: " << argc << std::endl;
+		std::cout << "Usage:" << std::endl;
+		std::cout << "ring2pcmu [\"ring tone sequence\"] output.wav" << std::endl;
+		return 1;
+	}
+
+	// parse cadence
+	Cadence cadence;
+	typedef client::Parser<std::string::const_iterator> Parser;
+	Parser grammar(cadence);
+
+        std::string::const_iterator itr = str.begin();
+        std::string::const_iterator end = str.end();
+	bool r = phrase_parse(itr, end, grammar, boost::spirit::ascii::space);
+
+	if (!r || itr != end) {
+		std::string error_at(itr, end);
+		std::cout << "parse failed at: " << error_at << std::endl;
+		return 1;
+	}
+
+	// translate cadence in to wave
+	std::vector<Cycle> cycles = cadence.cycles();
+	int wav_buffer[cadence.TotalSamples()];
+	int sample_index = 0;
+	std::vector<Cycle>::const_iterator it_c = cycles.begin();
+	for (; it_c != cycles.end(); ++it_c) {
+		const Cycle& cycle = *it_c;
+		for (int j = 0; j < cycle.NumberOfSamples(); ++j) {
+			if (cycle.type() == Cycle::kOn) {
+				wav_buffer[sample_index] = kAmplitude * sin(kLeftFreq * 2 * j * M_PI);
+			} else {
+				wav_buffer[sample_index] = 0;
+			}
+			sample_index++;
+		}
+	}
+
+	// write wave file
+	SF_INFO info = snd::GetPcmuInfo(cadence.TotalSamples());
+	snd::OutFile output(filename, info);
+	assert(output.Good());
+	int num_items = info.channels * cadence.TotalSamples();
+	int written = output.Write(wav_buffer, num_items);
+	if (written != num_items) {
+		std::cout << "write errror. " << num_items << "!=" << written << std::endl;
+		return 1;
+	}
+
+	return 0;
+}
+
