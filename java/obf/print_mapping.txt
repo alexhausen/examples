@@ -1,0 +1,5 @@
+package1.Class1 -> a.a:
+    boolean var1 -> b
+    java.lang.String[] var2 -> b
+package2.Class2 -> package2.Class2:
+    void main(java.lang.String[]) -> main
