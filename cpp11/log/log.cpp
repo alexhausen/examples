@@ -115,7 +115,7 @@ log::~log() {
 }
 
 std::ostringstream& log::stream(level lvl, const char* category) {
-  os_ << to_color(lvl) << to_string(lvl) << reset_terminal_attributes << " [" << category << "] ";
+  os_ << to_color(lvl) << " " << to_string(lvl) << " " << reset_terminal_attributes << " [" << category << "] ";
   os_.clear(); //reset error flags
   return os_;
 }
