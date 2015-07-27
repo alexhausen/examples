@@ -1,35 +1,30 @@
-#include <algorithm>
-#include <functional>
 #include <locale>
 #include <iostream>
-#include <stdexcept>
-#include <string>
 #include <cassert>
+
+//doesn't work
 
 using namespace std;
 
-string to_lower(string s, const locale loc) {
-	transform(s.begin(), s.end(), s.begin(), [loc](char c){ return tolower(c, loc); });
-	return s;
-}
-
 int main() {
-	
-	string s = to_lower("ABC", locale(""));
-	cout << s << endl;
-	assert("abc" == s);
+  auto loc = locale();
+  auto& f = use_facet<ctype<wchar_t>>(loc);
+  wchar_t wc = f.tolower(L'A');
+  wstring ws;
+  ws.push_back(wc);
+  string s(ws.begin(), ws.end());
+  cout << s << endl;
 
-	try {
-		s = to_lower(u8"XYZ", locale("en_US.utf8"));
-		cout << s << endl;
-		assert("xyz" == s);
-	} catch (const runtime_error& e) {
-		//may throw runtime_error message: "locale::facet::_S_create_c_locale
-		//name not valid" for some locales.
-		//run locale --all
-		cout << e.what() << endl;
-	}
+/*
+  change_locale_to("en_US.utf8");
+  assert(u8"abc" == to_lower(u8"AbC"));
+  assert(u8"σ" == to_lower(u8"Σ"));
+  assert(u8"ß" == to_lower(u8"ẞ"));
+	assert("" == to_lower(""));
 
+  change_locale_to("pt_BR.utf8");
+  assert(u8"oáçã" == to_lower(u8"ÁÇÃO"));
+*/
 	return 0;
 }
 
