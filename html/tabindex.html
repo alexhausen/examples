@@ -1,0 +1,93 @@
+<html>
+<head>
+  <title> example </title>
+
+  <style>
+    p:focus {
+      background-color: yellow;
+    }
+    div:focus {
+      background-color: blue;
+    }
+  </style>
+
+</head>
+
+<body onload="initialFocus()">
+
+<script>
+function findLowestTabIndex(element) {
+  var lowestTabIndex = element.tabIndex;
+  if (lowestTabIndex == -1 || lowestTabIndex == 0) {
+    lowerTabIndex = Number.MAX_VALUE;
+  }
+  for (var i = 0; i < element.children.length; ++i) {
+    var temp = findLowestTabIndex(element.children[i]);
+    if (temp != -1 && temp < lowestTabIndex) {
+      lowestTabIndex = temp;
+    }
+  }
+  return lowestTabIndex;
+}
+
+function getElementWithTabIndex(element, index) {
+  if (element.tabIndex == index) {
+    return element;
+  }
+  for (var i = 0; i < element.children.length; ++i) {
+    child = element.children[i];
+    var temp = getElementWithTabIndex(child, index);
+    if (temp != undefined) return temp;
+   }
+  return undefined;
+}
+
+function changeFocusTo(index) {
+  console.log("change focus to index : " + index);
+  var element = getElementWithTabIndex(document.body, index);
+  console.log(element);
+  if (element != undefined) {  
+    element.focus();
+    console.log("currentFocus " + document.activeElement);
+  }
+}
+
+function initialFocus() {
+  var lowestTabIndex = findLowestTabIndex(document.body);
+  changeFocusTo(lowestTabIndex);
+}
+
+function changeFocus() {
+  var index = document.getElementById("index").value;
+  changeFocusTo(index);
+}
+
+</script>
+<div> no index </div>
+
+<div tabindex="5" > div5
+  <div > null </div>
+  <div tabindex="2"> div2 </div>
+</div>
+
+<div tabindex="3"> div3 </div>
+
+<div> null
+  <div> null </div>
+  <div tabindex="6" > div6 </div>
+  <div>
+    <div tabindex="1" > div1 </div>
+  </div>
+  <div> null </div>
+  <div tabindex="7" > div7 </div>
+</div>
+
+<div tabindex="4"> div4 </div>
+
+<input type="button" onclick="initialFocus()" value="Initial Focus"/>
+<input type="button" onclick="changeFocus()" value="Change Focus"/>
+<input id="index" type="text"/>
+
+</body>
+
+</html>
