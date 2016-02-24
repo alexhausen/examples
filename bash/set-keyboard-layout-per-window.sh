@@ -24,8 +24,9 @@ P3=("Navigator.Firefox" "1")
 P4=("rhythmbox.Rhythmbox" "1")
 P5=("Mail.Thunderbird" "1")
 P6=("skype.Skype" "1")
+P7=("rocket.chat.Rocket.Chat" "1")
 
-PROGS=(P0[@] P1[@] P2[@] P3[@] P4[@] P5[@] P6[@])
+PROGS=(P0[@] P1[@] P2[@] P3[@] P4[@] P5[@] P6[@] P7[@])
 PROGS_COUNT=${#PROGS[@]}
 
 while [ 1 ];do
