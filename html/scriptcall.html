@@ -1,0 +1,22 @@
+<html>
+<head>
+  <title> script call </title>
+</head>
+
+<body onload="test()">
+
+<script src="calledscript.js"> </script>
+
+<script>
+function test() {
+  document.getElementById("testx").innerHTML = "test1";
+  test2();
+}
+
+</script>
+
+<div id="testx"> testx </div>
+
+</body>
+
+</html>
