@@ -23,7 +23,7 @@ P2=("Eclipse.Eclipse" "0")
 P3=("Navigator.Firefox" "1")
 P4=("rhythmbox.Rhythmbox" "1")
 P5=("Mail.Thunderbird" "1")
-P6=("Msgcompose.Thunderbird", "1")
+P6=("Msgcompose.Thunderbird" "1")
 P7=("skype.Skype" "1")
 P8=("rocket.chat+.Rocket.Chat+" "1")
 
@@ -48,6 +48,7 @@ while [ 1 ];do
   do
     CLASS=${!PROGS[i]:0:1}
     LAYOUT=${!PROGS[i]:1:1}
+    debug "$CURRENT_CLASS = $CLASS ?"
     if [ "$CURRENT_CLASS" == "$CLASS" ];then
       debug "$CLASS:$LAYOUT"
       if [ $CURRENT_LAYOUT -ne $LAYOUT ];then
