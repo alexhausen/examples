@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -lt 2 ]; then
-  echo "usage: grepword regex file.doc"
+  echo "usage: grepword.sh <regex> file.doc"
   exit 1
 fi
 
