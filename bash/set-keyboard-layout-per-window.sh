@@ -14,11 +14,11 @@
 
 #http://askubuntu.com/questions/655628/assign-default-keyboard-language-per-application
 
-#"0" = EN-US, "1" = EN-US intl
-#[('xkb', 'us'), ('xkb', 'us+intl'), ('xkb', 'br')]
+#"0" = EN-US, "1" = EN-US intl, "2" = EN-US alt-gr, "3" = PT-BR
+#[('xkb', 'us'), ('xkb', 'us+intl'), ('xkb', 'us+altgr-intl'), ('xkb', 'br')]
 
-P0=("gedit.Gedit" "0")
-P1=("sakura.Sakura" "0")
+P0=("gedit.Gedit" "2")
+P1=("sakura.Sakura" "2")
 P2=("Eclipse.Eclipse" "0")
 P3=("Navigator.Firefox" "1")
 P4=("rhythmbox.Rhythmbox" "1")
