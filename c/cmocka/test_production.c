@@ -8,7 +8,7 @@
 #include "production.h"
 #include "dependency.h"
 
-int dep(int param, int* out_param) {
+int dep(int param) {
   printf("mock dep param %d\n", param);
   check_expected(param);
   return (int)mock();
