@@ -37,6 +37,9 @@ int main() {
   glewExperimental = GL_TRUE;
   glewInit();
 
+  // GL version
+  printf("OpenGL version: %s. GLSL version: %s.\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+
   // vertex array object (vao)
   GLuint vao;
   glGenVertexArrays(1, &vao);
