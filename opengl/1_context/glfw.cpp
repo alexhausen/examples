@@ -1,6 +1,7 @@
 // https://open.gl/context/
 
-// g++ -std=c++17 -Wextra -Wall -Werror -pedantic setup.cpp -lglfw -lGLEW -lGL
+// create a window context with glfw
+// g++ -std=c++17 -Wextra -Wall -Werror -pedantic glfw.cpp -lglfw -lGLEW -lGL
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -17,7 +18,7 @@ void shutDown(int debug) {
 
 int main() {
 
-  // setup for open GL (using GLFW to create window)
+  // create window context using GLFW 
   if (glfwInit() != GL_TRUE) shutDown(1);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
