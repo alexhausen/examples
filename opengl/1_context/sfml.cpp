@@ -1,7 +1,7 @@
 // https://open.gl/context
 
 // create a window context with SFML
-// g++ -std=c++17 -Werror -pedantic sfml.cpp -lsfml-system -lsfml-window
+// g++ -std=c++17 -Wall -Wextra -Werror -pedantic sfml.cpp -lsfml-system -lsfml-window -lGLEW -lGL
 
 #include <GL/glew.h>
 #include <SFML/System.hpp>
@@ -35,6 +35,9 @@ int main() {
       case sf::Event::KeyPressed:
         if (windowEvent.key.code == sf::Keyboard::Escape)
           running = false;
+        break;
+      
+      default:
         break;
       }
     }
