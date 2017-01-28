@@ -1,6 +1,6 @@
 // https://open.gl/context/
 
-// g++ -std=c++17 -Wextra -Wall -Werror -pedantic 2_uniform.cpp -lglfw -lGLEW -lGL -lm
+// g++ -std=c++17 -Wextra -Wall -Werror -pedantic 2_uniforms.cpp -lglfw -lGLEW -lGL -lm
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
