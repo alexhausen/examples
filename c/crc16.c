@@ -20,7 +20,7 @@ uint16_t get_value_from_table(uint8_t x) {
   
   uint16_t crc = x;
   for (int bit = 8; bit != 0; --bit) {
-    bool low_bit = crc & 0x0001;
+    bool low_bit = (crc & 1) == 1;
     crc >>= 1;
     if (low_bit) crc ^= CRC16_GENERATOR;
   }
@@ -41,19 +41,17 @@ uint16_t crc16(const uint8_t* data, int n) {
 
 // non-lazy impl
 uint16_t crc16_hard(const uint8_t data[], int n) {
-    uint16_t crc = 0;
-    for (int i = 0; i < n; ++i) {
-        crc ^= data[i];
-        for (int j = 8; j != 0; --j) {
-            bool low_bit = crc & 0x0001;
-            crc >>= 1;
-            if (low_bit) crc ^= CRC16_GENERATOR;
-        }
+  uint16_t crc = 0;
+  for (int i = 0; i < n; ++i) {
+    crc ^= data[i];
+    for (int j = 8; j != 0; --j) {
+      bool low_bit = crc & 0x0001;
+      crc >>= 1;
+      if (low_bit) crc ^= CRC16_GENERATOR;
     }
-    return crc;
+  }
+  return crc;
 }
-
-
 
 #define ARRAY_SIZE(array) (sizeof(array)/sizeof(array[0]))
 
