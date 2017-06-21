@@ -21,43 +21,89 @@ struct S {
 
 void test_rb() {
   ring_queue<int> rb1;
+  rb1.print();
   assert(rb1.empty());
   assert(0 == rb1.size());
+
+  std::cout << "push 1: ";
   rb1.push(1);
   assert(1 == rb1.size());
+  rb1.print();
+
+  std::cout << "push 2: ";
   rb1.push(2);
+  rb1.print();
   assert(2 == rb1.size());
+
+  std::cout << "pop: ";
   assert(1 == rb1.pop());
+  rb1.print();
+  assert(1 == rb1.size());
+
+  std::cout << "pop: ";
   assert(2 == rb1.pop());
+  rb1.print();
   assert(rb1.empty());
   assert(0 == rb1.size());
+
   try {
     rb1.pop();
     assert(false);
   } catch (...) {
   }
 
+  std::cout << "\n";
   ring_queue<int> rb2{2};
+  rb2.print();
   assert(rb2.empty());
   assert(0 == rb2.size());
+
+  std::cout << "push 1: ";
   rb2.push(1);
+  rb2.print();
+  assert(1 == rb2.size());
+
+  std::cout << "push 2: ";
   rb2.push(2);
+  rb2.print();
   assert(2 == rb2.size());
+
+  std::cout << "push 3: ";
   rb2.push(3);
   rb2.print();
   assert(3 == rb2.size());
+
+  std::cout << "pop: ";
   assert(1 == rb2.pop());
+  rb2.print();
+  assert(2 == rb2.size());
+
+  std::cout << "pop: ";
   assert(2 == rb2.pop());
+  rb2.print();
   assert(1 == rb2.size());
+
+  std::cout << "push 4: ";
   rb2.push(4);
+  rb2.print();
+  assert(2 == rb2.size());
+
+  std::cout << "push 5: ";
   rb2.push(5);
   rb2.print();
+  assert(3 == rb2.size());
+
+  std::cout << "pop: ";
   assert(3 == rb2.pop());
   assert(2 == rb2.size());
+  rb2.print();
+
+  std::cout << "pop: ";
   assert(4 == rb2.pop());
   assert(1 == rb2.size());
   rb2.print();
 
+  std::cout << "\n";
   ring_queue<int> rb3{3};
   rb3.push(1);
   rb3.push(2);
