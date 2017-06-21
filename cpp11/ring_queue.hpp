@@ -19,7 +19,7 @@ class ring_queue {
   size_t size() const noexcept { return size_; }
 
   void push(T&& item) {
-    if (size_ == capacity) {
+    if (size() == capacity) {
       realloc_and_move();
     }
     if (end == capacity) end = 0;
@@ -29,7 +29,7 @@ class ring_queue {
   }
 
   void push(const T& item) {
-    if (size_ == capacity) {
+    if (size() == capacity) {
       realloc_and_move();
     }
     if (end == capacity) end = 0;
@@ -48,18 +48,11 @@ class ring_queue {
 
 #ifndef NDEBUG
   void print() const {
-    std::cout << "b: " << begin << ", e: " << end << ", s: " << size_ << ", { ";
-    if (begin < end) {
-      for (size_t i = begin; i < end; ++i) {
-        std::cout << buffer[i] << " ";
-      }
-    } else if (end > 0) {
-      for (size_t i = begin; i < capacity; ++i) {
-        std::cout << buffer[i] << " ";
-      }
-      for (size_t i = end - 1; i < begin; ++i) {
-        std::cout << buffer[i] << " ";
-      }
+    std::cout << "b: " << begin << ", e: " << end << ", s: " << size()
+              << ", { ";
+    const size_t sz = size();
+    for (size_t i = 0; i < sz; ++i) {
+      std::cout << buffer[(begin + i) % capacity] << " ";
     }
     std::cout << "} - [ ";
     for (size_t i = 0; i < capacity; ++i) {
@@ -74,28 +67,20 @@ class ring_queue {
     //  reallocate twice the capacity and move elements
     size_t new_capacity = static_cast<float>(capacity) * 1.5f;
     T* new_buffer = new T[new_capacity];
-    size_t j = 0;
-    if (begin < end) {
-      for (size_t i = begin; i < end; ++i, ++j) {
-        new_buffer[j] = std::move(buffer[i]);
-      }
-    } else if (end > 0) {
-      for (size_t i = begin; i < capacity; ++i, ++j) {
-        new_buffer[j] = std::move(buffer[i]);
-      }
-      for (size_t i = end - 1; i < begin; ++i, ++j) {
-        new_buffer[j] = std::move(buffer[i]);
-      }
+    const size_t sz = size();
+    size_t i = 0;
+    for (; i < sz; ++i) {
+      new_buffer[i] = std::move(buffer[(begin + i) % capacity]);
     }
     begin = 0;
-    end = j;
+    end = i;
     delete[] buffer;
     buffer = new_buffer;
     capacity = new_capacity;
   }
 
-  size_t capacity;
   size_t size_;
+  size_t capacity;
   size_t begin;
   size_t end;
   T* buffer;
