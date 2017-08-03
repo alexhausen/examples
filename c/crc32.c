@@ -1,7 +1,8 @@
-// CRC-32 Castagnoli Reversed
+// CRC-32 Castagnoli Reversed (0x82F63B78)
 // compare results to http://www.digsys.se/JavaScript/CRC.aspx or
 // http://checksumcalc.live.conceptcontrols.com/
 // compile: gcc -msse4.2 -Wall -Wextra crc32.c
+// usage: crc32 <input> <output>
 
 #include <nmmintrin.h>
 
@@ -15,7 +16,7 @@
 #define CRC32_XOR_OUT 0xFFFFFFFFu
 #define CRC32_POLYNOMIAL 0x82F63B78u
 
-static uint32_t crc_table[256] = {
+static const uint32_t crc_table[256] = {
     0x00000000u, 0xf26b8303u, 0xe13b70f7u, 0x1350f3f4u, 0xc79a971fu,
     0x35f1141cu, 0x26a1e7e8u, 0xd4ca64ebu, 0x8ad958cfu, 0x78b2dbccu,
     0x6be22838u, 0x9989ab3bu, 0x4d43cfd0u, 0xbf284cd3u, 0xac78bf27u,
@@ -94,37 +95,26 @@ void make_table(void) {
 }
 */
 
-#define ALIGN_SIZE 0x08UL            // Align at an 8-byte boundary
-#define ALIGN_MASK (ALIGN_SIZE - 1)  // Bitmask for 8-byte bound addresses
-
-// Performs H/W CRC operations
-#define CALC_CRC(op, crc, type, buf, len)              \
-  do {                                                 \
-    for (; (len) >= sizeof(type);                      \
-         (len) -= sizeof(type), buf += sizeof(type)) { \
-      (crc) = op((crc), *(type*)(buf));                \
-    }                                                  \
-  } while (0)
-
+// Performs Hardware CRC operations
 uint32_t crc32c_hw(const uint8_t* buffer, size_t size) {
   uint32_t crc = CRC32_INITIAL;
-
-  // Align the input to the word boundary
-  for (; (size > 0) && ((size_t)buffer & ALIGN_MASK); --size, ++buffer) {
-    crc = _mm_crc32_u8(crc, *buffer);
+  for (size_t i = 0; i < size; ++i) {
+    crc = _mm_crc32_u8(crc, buffer[i]);
   }
-
-#if defined(__x86_64__) || defined(_M_X64)
-  CALC_CRC(_mm_crc32_u64, crc, uint64_t, buffer, size);
-#endif
-  CALC_CRC(_mm_crc32_u32, crc, uint32_t, buffer, size);
-  CALC_CRC(_mm_crc32_u16, crc, uint16_t, buffer, size);
-  CALC_CRC(_mm_crc32_u8, crc, uint8_t, buffer, size);
-
   return crc ^ CRC32_XOR_OUT;
 }
 
-uint32_t crc32c_slow(const uint8_t* buffer, size_t size) {
+// Performs Hardware CRC operations (32-bit aligned input buffer)
+uint32_t crc32c_hw32(const uint32_t* buffer, size_t size) {
+  uint32_t crc = CRC32_INITIAL;
+  for (size_t i = 0; i < size; ++i) {
+    crc = _mm_crc32_u32(crc, buffer[i]);
+  }
+  return crc ^ CRC32_XOR_OUT;
+}
+
+// Slow Software CRC32C
+uint32_t crc32c_sw_slow(const uint8_t* buffer, size_t size) {
   uint32_t crc = CRC32_INITIAL;
   for (size_t i = 0; i < size; ++i) {
     crc ^= buffer[i];
@@ -137,7 +127,8 @@ uint32_t crc32c_slow(const uint8_t* buffer, size_t size) {
   return crc ^ CRC32_XOR_OUT;
 }
 
-uint32_t crc32c_fast(const uint8_t* buffer, size_t size) {
+// Fast Software CRC32C (uses a precomputed table)
+uint32_t crc32c_sw_fast(const uint8_t* buffer, size_t size) {
   uint32_t crc = CRC32_INITIAL;
   for (size_t i = 0; i < size; ++i) {
     uint8_t x = (crc & 0xFFu) ^ buffer[i];
@@ -146,23 +137,99 @@ uint32_t crc32c_fast(const uint8_t* buffer, size_t size) {
   return crc ^ CRC32_XOR_OUT;
 }
 
+void crc32c_update(uint32_t* crc, const uint8_t* buffer, size_t size) {
+  *crc ^= CRC32_INITIAL;
+  for (size_t i = 0; i < size; ++i) {
+    uint8_t x = (*crc & 0xFFu) ^ buffer[i];
+    *crc = (*crc >> 8) ^ crc_table[x];
+  }
+  *crc ^= CRC32_XOR_OUT;
+}
+
 typedef uint32_t (*crc_fn)(const uint8_t*, size_t);
 
-int main(void) {
-  // make_table();
-  // print_table();
-  const char* input0 = "";
-  crc_fn crc32c = crc32c_fast;
-  uint32_t crc0 = crc32c((const uint8_t*)input0, strlen(input0));
-  assert(0x00000000 == crc0);
+static crc_fn crc32c = crc32c_hw;
 
-  const char* input1 = "a";
-  uint32_t crc1 = crc32c((const uint8_t*)input1, strlen(input1));
-  assert(0xC1D04330 == crc1);
+int main(int argc, char** argv) {
+  if (argc == 1) {
+    // make_table();
+    // print_table();
+    const char* input0 = "";
+    uint32_t crc0 = crc32c((const uint8_t*)input0, strlen(input0));
+    assert(0x00000000 == crc0);
 
-  const char* input2 = "abcdefghijklmnopqrstuvwxyz";
-  uint32_t crc2 = crc32c((const uint8_t*)input2, strlen(input2));
-  assert(0x9EE6EF25 == crc2);
+    const char* input1 = "a";
+    uint32_t crc1 = crc32c((const uint8_t*)input1, strlen(input1));
+    assert(0xC1D04330 == crc1);
+
+    const char* input1_1 = "abc";
+    uint32_t crc1_1 = crc32c((const uint8_t*)input1_1, strlen(input1_1));
+    assert(0x364B3FB7 == crc1_1);
+
+    const char* input1_2 = "abcd";
+    uint32_t crc1_2 = crc32c((const uint8_t*)input1_2, strlen(input1_2));
+    assert(0x92C80A31 == crc1_2);
+
+    const char* input2 = "abcdefghijklmnopqrstuvwxyz";
+    uint32_t crc2 = crc32c((const uint8_t*)input2, strlen(input2));
+    assert(0x9EE6EF25 == crc2);
+
+    const char* input3_1 = "abcdefghijklm";
+    const char* input3_2 = "nopqrstuvwxyz";
+    uint32_t crc3 = 0;
+    crc32c_update(&crc3, (const uint8_t*)input3_1, strlen(input3_1));
+    assert(0x5FDBF778 == crc3);
+    crc32c_update(&crc3, (const uint8_t*)input3_2, strlen(input3_2));
+    assert(0x9EE6EF25 == crc3);
+
+    uint32_t crc4 = 0;
+    crc32c_update(&crc4, (const uint8_t*)"", 0);
+    assert(0 == crc4);
+
+    puts("ok");
+
+  } else if (argc == 3) {
+    FILE* fp_in = fopen(argv[1], "rb");
+    if (!fp_in) {
+      printf("Error: open input file '%s'.", argv[1]);
+      return 1;
+    }
+    fseek(fp_in, 0L, SEEK_END);
+    long sz = ftell(fp_in);
+    if (sz <= 0) {
+      printf("Error: input file '%s' size: %ld.", argv[1], sz);
+      fclose(fp_in);
+      return 1;
+    }
+    unsigned long usz = (unsigned long) sz;
+    if (usz > SIZE_MAX) {
+      printf("Error: input file '%s' too large: %ld.", argv[1], sz);
+      fclose(fp_in);
+      return 1;
+    }
+    size_t size_in = (size_t)usz;
+    rewind(fp_in);
+    uint8_t* buffer = (uint8_t*)malloc(size_in);
+    int c;
+    int i = 0;
+    while ((c = fgetc(fp_in)) != EOF) {
+      buffer[i++] = (uint8_t)c;
+    }
+    uint32_t crc = crc32c(buffer, size_in);
+    fclose(fp_in);
+
+    FILE* fp_out = fopen(argv[2], "wb");
+    if (!fp_out) {
+      printf("Error: open file '%s'.", argv[1]);
+      return 1;
+    }
+    fprintf(fp_out, "0x%0X", crc);
+    fclose(fp_out);
+
+  } else {
+    puts("usage: exe <input file> <output file>\n");
+    return 1;
+  }
 
   return 0;
 }
