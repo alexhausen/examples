@@ -104,12 +104,35 @@ uint32_t crc32c_hw(const uint8_t* buffer, size_t size) {
   return crc ^ CRC32_XOR_OUT;
 }
 
-// Performs Hardware CRC operations (32-bit aligned input buffer)
-uint32_t crc32c_hw32(const uint32_t* buffer, size_t size) {
+// FIXME: assertion fail
+// Performs Hardware CRC operations Optimized
+uint32_t crc32c_hw_opt(const uint8_t* buffer, size_t size) {
   uint32_t crc = CRC32_INITIAL;
-  for (size_t i = 0; i < size; ++i) {
-    crc = _mm_crc32_u32(crc, buffer[i]);
+
+  // align input buffer
+  uintptr_t size_to_align = (uintptr_t)buffer & 3;
+  for (size_t i = 0; i < size_to_align; ++i) {
+    crc = _mm_crc32_u8(crc, buffer[i]);
   }
+  buffer += size_to_align;
+  size -= size_to_align;
+
+  // optimized part
+  size_t size_words = size / 4;
+  const uint32_t* words_ptr = (const uint32_t*)buffer + size_to_align;
+  for (size_t i = 0; i < size_words; ++i) {
+    crc = _mm_crc32_u32(crc, words_ptr[i]);
+    buffer += 4;
+  }
+
+  size_t size_rest = size & 3;
+  for (size_t i = 0; i < size_rest; ++i) {
+    crc = _mm_crc32_u8(crc, buffer[i]);
+  }
+
+  // for (size_t i = 0; i < size; ++i) {
+  //   crc = _mm_crc32_u32(crc, buffer[i]);
+  // }
   return crc ^ CRC32_XOR_OUT;
 }
 
@@ -137,6 +160,44 @@ uint32_t crc32c_sw_fast(const uint8_t* buffer, size_t size) {
   return crc ^ CRC32_XOR_OUT;
 }
 
+// Fast Software CRC32C (table + loop unrooling)
+uint32_t crc32c_sw_fast2(const uint8_t* buffer, size_t size) {
+  uint32_t crc = CRC32_INITIAL;
+
+  // align input buffer
+  uintptr_t size_to_align = (uintptr_t)buffer & 3;
+  for (size_t i = 0; i < size_to_align; ++i) {
+    crc = (crc >> 8) ^ crc_table[((crc & 0xFFu) ^ buffer[i])];
+  }
+  buffer += size_to_align;
+  size -= size_to_align;
+
+  // unrool loop
+  uint32_t remaining_size = size & 3;
+  size -= remaining_size;
+  const uint32_t* word_ptr = (const uint32_t*)buffer;
+  for (size_t i = 0; i < size; i += 4) {
+    const uint32_t word = *word_ptr;
+    uint8_t byte0 = word & 0xFFu;
+    uint8_t byte1 = (word >> 8) & 0xFFu;
+    uint8_t byte2 = (word >> 16) & 0xFFu;
+    uint8_t byte3 = (word >> 24) & 0xFFu;
+    crc = (crc >> 8) ^ crc_table[((crc & 0xFFu) ^ byte0)];
+    crc = (crc >> 8) ^ crc_table[((crc & 0xFFu) ^ byte1)];
+    crc = (crc >> 8) ^ crc_table[((crc & 0xFFu) ^ byte2)];
+    crc = (crc >> 8) ^ crc_table[((crc & 0xFFu) ^ byte3)];
+    ++word_ptr;
+  }
+
+  // remaining
+  buffer += size;
+  for (size_t i = 0; i < remaining_size; ++i) {
+    crc = (crc >> 8) ^ crc_table[((crc & 0xFFu) ^ buffer[i])];
+  }
+
+  return crc ^ CRC32_XOR_OUT;
+}
+
 void crc32c_update(uint32_t* crc, const uint8_t* buffer, size_t size) {
   *crc ^= CRC32_INITIAL;
   for (size_t i = 0; i < size; ++i) {
@@ -148,7 +209,7 @@ void crc32c_update(uint32_t* crc, const uint8_t* buffer, size_t size) {
 
 typedef uint32_t (*crc_fn)(const uint8_t*, size_t);
 
-static crc_fn crc32c = crc32c_hw;
+static crc_fn crc32c = crc32c_sw_fast2;
 
 int main(int argc, char** argv) {
   if (argc == 1) {
@@ -173,6 +234,16 @@ int main(int argc, char** argv) {
     const char* input2 = "abcdefghijklmnopqrstuvwxyz";
     uint32_t crc2 = crc32c((const uint8_t*)input2, strlen(input2));
     assert(0x9EE6EF25 == crc2);
+
+    const char* input2_1 = "abcdef";
+    uint32_t crc2_1 =
+        crc32c((const uint8_t*)&input2_1[2], 4);  // strlen(input2_1));
+    assert(0x74EAFE62 == crc2_1);
+
+    const char* input2_2 = "abcdefg";
+    uint32_t crc2_2 = crc32c((const uint8_t*)input2_2, strlen(input2_2));
+    // printf("0x%0x\n", crc2_2);
+    assert(0xE627F441 == crc2_2);
 
     const char* input3_1 = "abcdefghijklm";
     const char* input3_2 = "nopqrstuvwxyz";
@@ -201,7 +272,7 @@ int main(int argc, char** argv) {
       fclose(fp_in);
       return 1;
     }
-    unsigned long usz = (unsigned long) sz;
+    unsigned long usz = (unsigned long)sz;
     if (usz > SIZE_MAX) {
       printf("Error: input file '%s' too large: %ld.", argv[1], sz);
       fclose(fp_in);
