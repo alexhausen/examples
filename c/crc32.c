@@ -198,6 +198,50 @@ uint32_t crc32c_sw_fast2(const uint8_t* buffer, size_t size) {
   return crc ^ CRC32_XOR_OUT;
 }
 
+/** @traceto(SWLLR-3742, SWLLR-3743, SWLLR-3744, SWLLR-3749, SWLLR-3752) */
+typedef uint32_t os_uint32_t;
+typedef uint8_t os_uint8_t;
+typedef size_t os_size_t;
+/*
+37xx - The function CRC_Crc32cUpdate shall use the following table to aid the
+CRC-32 Castagnoli computation: ADD TABLE HERE
+3742 - The function CRC_Crc32cUpdate shall update its initial crc value to crc Å
+0xffffffff.
+3744 - The function CRC_Crc32cUpdate shall update its final crc value to crc Å
+0xffffffff.
+3749 - The function CRC_Crc32cUpdate shall iterate over each 32-bits word of the
+input buffer and update the crc value with a right shift of 8 bits Å the table
+value at index: lower byte of crc Å the a byte of the currrent iterated word,
+for each byte of the word.
+3752 - The functionCRC_Crc32cUpdate shall update the CRC value of the 32-bits
+words aligned input data with the algorithm in requirement SWLLR-3749.
+*/
+void CRC_Crc32cUpdate(os_uint32_t* crc, const os_uint32_t* buffer,
+                      os_size_t size) {
+  os_uint32_t temp_crc = *crc;
+  /* SWLLR-3742 */
+  // temp_crc ^= 0xffffffffu;
+  /* SWLLR-? */
+  os_size_t num_words = size / 4;
+  /* SWLLR-3752 */
+  for (os_size_t i = 0; i < num_words; i += 4) {
+    /* SWLLR-3749 */
+    const os_uint32_t word = *buffer;
+    os_uint8_t byte0 = word & 0xffu;
+    os_uint8_t byte1 = (word >> 8) & 0xffu;
+    os_uint8_t byte2 = (word >> 16) & 0xffu;
+    os_uint8_t byte3 = (word >> 24) & 0xffu;
+    temp_crc = (temp_crc >> 8) ^ crc_table[(temp_crc & 0xffu) ^ byte0];
+    temp_crc = (temp_crc >> 8) ^ crc_table[(temp_crc & 0xffu) ^ byte1];
+    temp_crc = (temp_crc >> 8) ^ crc_table[(temp_crc & 0xffu) ^ byte2];
+    temp_crc = (temp_crc >> 8) ^ crc_table[(temp_crc & 0xffu) ^ byte3];
+    ++buffer;
+  }
+  /* SWLLR-3744 */
+  temp_crc ^= 0xffffffffu;
+  *crc = temp_crc;
+}
+
 void crc32c_update(uint32_t* crc, const uint8_t* buffer, size_t size) {
   *crc ^= CRC32_INITIAL;
   for (size_t i = 0; i < size; ++i) {
@@ -209,7 +253,7 @@ void crc32c_update(uint32_t* crc, const uint8_t* buffer, size_t size) {
 
 typedef uint32_t (*crc_fn)(const uint8_t*, size_t);
 
-static crc_fn crc32c = crc32c_sw_fast2;
+static crc_fn crc32c = crc32c_hw;
 
 int main(int argc, char** argv) {
   if (argc == 1) {
@@ -245,6 +289,24 @@ int main(int argc, char** argv) {
     // printf("0x%0x\n", crc2_2);
     assert(0xE627F441 == crc2_2);
 
+    const uint8_t input2_3[] = {0x91, 0x00, 0x00, 0x2f};
+    uint32_t crc2_3 = crc32c(input2_3, sizeof(input2_3));
+    assert(0x50482B87 == crc2_3);
+
+    const uint8_t input2_4[] = {0x91, 0x00, 0x00, 0x2f, 0xd9, 0x22, 0x70, 0x70};
+    uint32_t crc2_4 = crc32c(input2_4, sizeof(input2_4));
+    assert(0x585327D7 == crc2_4);
+
+    const uint8_t input2_5[] = {
+        0x91, 0x00, 0x00, 0x2F, 0xD9, 0x22, 0x70, 0x70, 0x54, 0x22, 0x91, 0x00,
+        0x00, 0x3F, 0xD9, 0x33, 0x74, 0x70, 0x54, 0x33, 0x37, 0x03, 0x62, 0x31,
+        0x37, 0x02, 0x61, 0x40, 0x37, 0x02, 0x78, 0x54, 0x8F, 0x85, 0x00, 0x50,
+        0x37, 0x35, 0x02, 0x51, 0xB7, 0xF5, 0x04, 0x52, 0x37, 0x45, 0x01, 0x50,
+        0xB7, 0x05, 0x81, 0x50, 0x74, 0x25, 0xB7, 0x15, 0x81, 0x50, 0xB7, 0x05,
+        0x01, 0x50, 0xB7, 0x05, 0x02, 0x51, 0x74, 0x25, 0x54, 0x25, 0x54, 0x32};
+    uint32_t crc2_5 = crc32c(input2_5, sizeof(input2_5));
+    assert(0x524A3D29 == crc2_5);
+
     const char* input3_1 = "abcdefghijklm";
     const char* input3_2 = "nopqrstuvwxyz";
     uint32_t crc3 = 0;
@@ -254,7 +316,7 @@ int main(int argc, char** argv) {
     assert(0x9EE6EF25 == crc3);
 
     uint32_t crc4 = 0;
-    crc32c_update(&crc4, (const uint8_t*)"", 0);
+    crc32c_update(&crc4, NULL, 0);
     assert(0 == crc4);
 
     puts("ok");
