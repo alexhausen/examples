@@ -1,4 +1,5 @@
 // g++ -std=c++0x -Wall -Wextra queue1.cpp
+// clang++ -Xclang -flto-visibility-public-std -std=c++14 queue1.cpp
 
 #include "queue1.h"
 
