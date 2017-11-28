@@ -1,44 +1,44 @@
-// https://open.gl/context/
+// https://open.gl/drawing/
 
-// g++ -std=c++17 -Wextra -Wall -Werror -pedantic 1_draw.cpp -lglfw -lGLEW -lGL
+// g++ -std=c++17 -Wextra -Wall -Werror -pedantic 2_uniforms.cpp -lglfw -lGLEW
+// -lGL -lm
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <chrono>
+#include <cmath>
 #include <cstdio>
 
 // shader sources
-const GLchar* vertexSource = 
-  "#version 150 core\n "
-  "in vec2 position;"
-  "void main() {"
-  "  gl_Position = vec4(position, 0.0, 1.0);"
-  "}";
+const GLchar* vertexSource =
+    "#version 150 core\n "
+    "in vec2 position;"
+    "void main() {"
+    "  gl_Position = vec4(position, 0.0, 1.0);"
+    "}";
 
-const GLchar* fragmentSource = 
-  "#version 150 core\n"
-  "out vec4 outColor;"
-  "void main() {"
-  "  outColor = vec4(1.0, 1.0, 1.0, 1.0);"
-  "}";
+const GLchar* fragmentSource =
+    "#version 150 core\n"
+    "uniform vec3 triangleColor;"
+    "out vec4 outColor;"
+    "void main() {"
+    "  outColor = vec4(triangleColor, 1.0);"
+    "}";
 
 int main() {
-
   // setup for open GL (using GLFW to create window)
   glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); 
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL", nullptr, nullptr);
   glfwMakeContextCurrent(window);
 
   // portable way to access GL buffers
   glewExperimental = GL_TRUE;
   glewInit();
-
-  // GL version
-  printf("OpenGL version: %s. GLSL version: %s.\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
   // vertex array object (vao)
   GLuint vao;
@@ -47,12 +47,12 @@ int main() {
 
   // vertex buffer object (vbo)
   GLuint vbo;
-  glGenBuffers(1, &vbo); // Generate 1 buffer
+  glGenBuffers(1, &vbo);  // Generate 1 buffer
 
   float vertices[] = {
-     0.0f,  0.5f, // Vertex 1 (x, y)
-     0.5f, -0.5f, // Vertex 2 (x, y)
-    -0.5f, -0.5f  // Vertex 3 (x, y)
+      0.0f,  0.5f,   // Vertex 1 (x, y)
+      0.5f,  -0.5f,  // Vertex 2 (x, y)
+      -0.5f, -0.5f   // Vertex 3 (x, y)
   };
 
   // upload vertices
@@ -88,7 +88,7 @@ int main() {
   GLuint shaderProgram = glCreateProgram();
   glAttachShader(shaderProgram, vertexShader);
   glAttachShader(shaderProgram, fragmentShader);
-  //glBindFragDataLocation(shaderProgram, 0, "outColor"); // - not needed now
+  // glBindFragDataLocation(shaderProgram, 0, "outColor"); // - not needed now
   glLinkProgram(shaderProgram);
   glUseProgram(shaderProgram);
 
@@ -96,7 +96,12 @@ int main() {
   GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
   glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(posAttrib);
-  
+
+  // uniform triangleColor from fragmentShader
+  GLint uniColor = glGetUniformLocation(shaderProgram, "triangleColor");
+  glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
+
+  auto time_start = std::chrono::high_resolution_clock::now();
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
@@ -106,6 +111,13 @@ int main() {
     // clear screen
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    auto time_now = std::chrono::high_resolution_clock::now();
+    float time_diff = std::chrono::duration_cast<std::chrono::duration<float>>(
+                          time_now - time_start)
+                          .count();
+    float r = (sin(time_diff * 4.0f) + 1.0f) / 2.0f;
+    glUniform3f(uniColor, r, 0.0f, 0.0f);
 
     // draw from the 3 vertices
     glDrawArrays(GL_TRIANGLES, 0, 3);
