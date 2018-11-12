@@ -1,0 +1,15 @@
+* install script (https://www.haskell.org/downloads):
+curl -sSL https://get.haskellstack.org/ | sh
+
+* setup environment
+stack setup
+
+* setup interactive mode
+stack ghci
+
+* setup new project
+stack new projectname
+
+stack build
+
+www.haskell.org/hoogle
