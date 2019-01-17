@@ -198,34 +198,15 @@ uint32_t crc32c_sw_fast2(const uint8_t* buffer, size_t size) {
   return crc ^ CRC32_XOR_OUT;
 }
 
-/** @traceto(SWLLR-3742, SWLLR-3743, SWLLR-3744, SWLLR-3749, SWLLR-3752) */
 typedef uint32_t os_uint32_t;
 typedef uint8_t os_uint8_t;
 typedef size_t os_size_t;
-/*
-37xx - The function CRC_Crc32cUpdate shall use the following table to aid the
-CRC-32 Castagnoli computation: ADD TABLE HERE
-3742 - The function CRC_Crc32cUpdate shall update its initial crc value to crc Å
-0xffffffff.
-3744 - The function CRC_Crc32cUpdate shall update its final crc value to crc Å
-0xffffffff.
-3749 - The function CRC_Crc32cUpdate shall iterate over each 32-bits word of the
-input buffer and update the crc value with a right shift of 8 bits Å the table
-value at index: lower byte of crc Å the a byte of the currrent iterated word,
-for each byte of the word.
-3752 - The functionCRC_Crc32cUpdate shall update the CRC value of the 32-bits
-words aligned input data with the algorithm in requirement SWLLR-3749.
-*/
 void CRC_Crc32cUpdate(os_uint32_t* crc, const os_uint32_t* buffer,
                       os_size_t size) {
   os_uint32_t temp_crc = *crc;
-  /* SWLLR-3742 */
   // temp_crc ^= 0xffffffffu;
-  /* SWLLR-? */
   os_size_t num_words = size / 4;
-  /* SWLLR-3752 */
   for (os_size_t i = 0; i < num_words; i += 4) {
-    /* SWLLR-3749 */
     const os_uint32_t word = *buffer;
     os_uint8_t byte0 = word & 0xffu;
     os_uint8_t byte1 = (word >> 8) & 0xffu;
@@ -237,7 +218,6 @@ void CRC_Crc32cUpdate(os_uint32_t* crc, const os_uint32_t* buffer,
     temp_crc = (temp_crc >> 8) ^ crc_table[(temp_crc & 0xffu) ^ byte3];
     ++buffer;
   }
-  /* SWLLR-3744 */
   temp_crc ^= 0xffffffffu;
   *crc = temp_crc;
 }
