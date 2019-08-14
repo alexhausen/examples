@@ -147,6 +147,18 @@ int main(int argc, char** argv) {
     assert(0x0A9421B7 == crc_sw);
     assert(0x0A9421B7 == crc_hw);
 
+    uint8_t input3[8] = {
+      0x47, 0x00, 0x00, 0x04,
+      0x00, 0x00, 0x00, 0x21,
+    };
+
+    crc_hw = CRC32_INITIAL;
+    for (uint32_t i = 0u; i < 8; i++) {
+      crc_hw = _mm_crc32_u8(crc_hw, input3[i]);
+    }
+    crc_hw ^= CRC32_XOR_OUT;
+    printf(">>>> hw=0x%08x\n", crc_hw);
+
     puts("ok");
 
   } else if (argc == 2) {
