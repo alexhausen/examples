@@ -1,0 +1,7 @@
+test2cmds:
+  image: alpine
+  command: >
+    /bin/sh -c 
+    "echo abc &&
+     echo def && 
+     exit 1"
