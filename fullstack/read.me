@@ -1,0 +1,47 @@
+npm init -y
+npm install typescript
+npm install jest
+npx tsc
+npx jest
+
+# npx executa as dependências do projeto
+
+# monitora alterações no arquivo
+npm install --save-dev nodemon
+npx nodemon src/main.js
+
+# pm2 = process manager (produção)
+npm install pm2
+npx pm2 list
+# inicia 4 instâncias (load balancer)
+npx pm2 start <arquivo.js> -i 4
+
+# inicia n instâncias (n = número de cores)
+npx pm2 start <arquivo.js> -i max
+
+# reload da página similar ao nodemon (não usar em produção)
+npx pm2 start <arquivo.js> --watch
+
+# arquivo de config do pm2: ecosystem.config.js
+
+# exibe logs (console)
+npx pm2 log
+
+# monitor básico
+npx pm2 monit
+
+# cria o tsconfig.json
+npx tsc --init
+
+# transpila o código
+npx tsc
+
+# executa o código transpilado (ver outDir do tsconfig.json)
+node dist/main.js
+
+# executa com JIT sem precisar transpilar
+npm install --save-dev ts-node
+npx ts-node src/main.ts
+
+# executa com o ts-node e nodemon
+npx nodemon src/main.ts
