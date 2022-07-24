@@ -45,3 +45,31 @@ npx ts-node src/main.ts
 
 # executa com o ts-node e nodemon
 npx nodemon src/main.ts
+
+# dependências projeto
+npm install --save jest @types/jest nodemon ts-node ts-jest express @types/express axios pg-promise
+
+# habilita o jest para o typescript
+npx ts-jest config:init
+
+# install docker:
+https://docs.docker.com/engine/install/ubuntu/
+
+sudo groupadd docker
+sudo usermod -aG docker $USER
+
+docker run hello-world
+docker compose version
+
+docker compose up -d
+
+# 172.17.0.1 === docker's localhost
+
+# pgadmin config:
+name: local-db
+host: 172.17.0.1
+port: 5432
+user: postgres
+password: 12345
+
+
