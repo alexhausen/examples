@@ -1,18 +1,18 @@
-import Board from "../../../domain/entity/board";
-import BoardRepository from "../../../repository/board-repository";
+// import Board from "../../../domain/entity/board";
+// import BoardRepository from "../../../repository/board-repository";
 
-export default class BoardRepositoryMemory implements BoardRepository {
+// export default class BoardRepositoryMemory implements BoardRepository {
 
-    boards: Board[];
+//     boards: Board[];
 
-    constructor() {
-        this.boards = [
-            new Board("Projeto 1")
-        ];
-    }
+//     constructor() {
+//         this.boards = [
+//             new Board("Projeto 1")
+//         ];
+//     }
 
-    async findAll(): Promise<Board[]> {
-        return this.boards;
-    }
+//     async findAll(): Promise<Board[]> {
+//         return this.boards;
+//     }
 
-}
+// }
