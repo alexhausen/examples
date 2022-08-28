@@ -1,6 +1,3 @@
-import Board from "../../domain/entity/board";
-import Card from "../../domain/entity/card";
-import Column from "../../domain/entity/column";
 import BoardService from "../../service/board-service";
 import CardService from "../../service/card-service";
 import ColumnService from "../../service/column-service";
@@ -18,7 +15,7 @@ export default class BoardController {
             const columnRepository = new ColumnRepositoryDatabase(connection);
             const cardRepository = new CardRepositoryDatabase(connection);
             const boardService = new BoardService(boardRepository, columnRepository, cardRepository);
-            const boards: Board[] = await boardService.getBoards();
+            const boards = await boardService.getBoards();
             return boards;
         });
 
@@ -27,7 +24,7 @@ export default class BoardController {
             const columnRepository = new ColumnRepositoryDatabase(connection);
             const cardRepository = new CardRepositoryDatabase(connection);
             const boardService = new BoardService(boardRepository, columnRepository, cardRepository);
-            const board: Board = await boardService.getBoard(params.idBoard);
+            const board = await boardService.getBoard(params.idBoard);
             return board;
         });
 
@@ -35,15 +32,57 @@ export default class BoardController {
         http.route("get", "/boards/:idBoard/columns", async function (params: any, body: any) {
             const columnRepository = new ColumnRepositoryDatabase(connection);
             const columnService = new ColumnService(columnRepository);
-            const columns: Column[] = await columnService.getColumns(parseInt(params.idBoard));
+            const columns = await columnService.getColumns(parseInt(params.idBoard));
             return columns;
+        });
+
+        http.route("get", "/boards/:idBoard/columns/:idColumn", async function (params: any, body: any) {
+            const columnRepository = new ColumnRepositoryDatabase(connection);
+            const columnService = new ColumnService(columnRepository);
+            const column = await columnService.getColumn(parseInt(params.idColumn));
+            return column;
+        });
+
+        http.route("post", "/boards/:idBoard/columns", async function (params: any, body: any) {
+            const columnRepository = new ColumnRepositoryDatabase(connection);
+            const columnService = new ColumnService(columnRepository);
+            const idColumn = await columnService.saveColumn(body);
+            return idColumn;
+        });
+
+        http.route("delete", "/boards/:idBoard/columns/:idColumn", async function (params: any, body: any) {
+            console.log(params);
+            const columnRepository = new ColumnRepositoryDatabase(connection);
+            const columnService = new ColumnService(columnRepository);
+            await columnService.deleteColumn(parseInt(params.idColumn));
         });
 
         http.route("get", "/boards/:idBoard/columns/:idColumn/cards", async function (params: any, body: any) {
             const cardRepository = new CardRepositoryDatabase(connection);
             const cardService = new CardService(cardRepository);
-            const cards: Card[] = await cardService.getCards(parseInt(params.idColumn));
+            const cards = await cardService.getCards(parseInt(params.idColumn));
             return cards;
         });
+
+
+        http.route("post", "/boards/:idBoard/columns/:idColumn/cards", async function (params: any, body: any) {
+            const cardRepository = new CardRepositoryDatabase(connection);
+            const cardService = new CardService(cardRepository);
+            const cardId = await cardService.saveCard(body);
+            return cardId;
+        });
+
+        http.route("delete", "/boards/:idBoard/columns/:idColumn/cards/:idCard", async function (params: any, body: any) {
+            const cardRepository = new CardRepositoryDatabase(connection);
+            const cardService = new CardService(cardRepository);
+            await cardService.deleteCard(parseInt(params.idCard));
+        });
+
+        http.route("put", "/boards/:idBoard/columns/:idColumn/cards/:idCard", async function (params: any, body: any) {
+            const cardRepository = new CardRepositoryDatabase(connection);
+            const cardService = new CardService(cardRepository);
+            await cardService.updateCard(body);
+        });
+
     }
 }

@@ -1,6 +1,6 @@
 export default class Card {
 
-    constructor(readonly title: string, readonly estimate: number) {
+    constructor(readonly idColumn: number, readonly idCard: number | undefined, readonly title: string, readonly estimate: number) {
         if (title === "") {
             throw new Error("Title is required");
         }
