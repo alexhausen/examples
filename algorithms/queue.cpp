@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 template <class T>
-class queue {
+class queue final {
    public:
     queue(unsigned reserve) : size_{0}, capacity_{0}, q_{nullptr} {
         q_ = reserve ? new T[reserve] : nullptr;

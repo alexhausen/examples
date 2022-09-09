@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 template <class T>
-class stack {
+class stack final {
    public:
     stack(unsigned reserve) : top_{0}, capacity_{0}, s_{nullptr} {
         s_ = reserve ? new T[reserve] : nullptr;

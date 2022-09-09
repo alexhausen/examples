@@ -8,7 +8,7 @@
 
 template <typename T, unsigned N>
 // requires(N > 0)  // c++20 only
-class ring_buffer {
+class ring_buffer final {
    public:
     ring_buffer() : begin_{0}, size_{0} {}
 
