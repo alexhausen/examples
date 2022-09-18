@@ -15,7 +15,7 @@ auto bubble_sort_c(T array[], unsigned n) -> void {
                 std::swap(array[i], array[j]);
 }
 
-// bubble sort using C++ iterators
+// bubble sort C++ STL style
 template <class Iter>
 auto bubble_sort(Iter begin, Iter end) -> void {
     for (auto it1 = begin; it1 != end; ++it1)

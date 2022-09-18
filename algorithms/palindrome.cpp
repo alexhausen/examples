@@ -1,8 +1,8 @@
 // check if a string is a palindrome
 
 #include <cassert>
-
 #include <cctype>
+
 #include <iostream>
 #include <string>
 
