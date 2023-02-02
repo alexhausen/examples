@@ -62,6 +62,22 @@ auto binary_search_iteractive2(const T& value, const std::vector<T>& vec) {
     return std::lower_bound(vec.cbegin(), vec.cend(), value);
 }
 
+// TODO branchless binary search
+/*
+int lower_bound(int x)
+{
+   int w[2] = { 0, n - 1 }, m, b;
+   while ( w[0] < w[1] )
+   {
+      m = (w[0] + w[1]) / 2;
+      b = t[m] >= x;
+      w[b] = m + !b;
+   }
+   return t[1];
+}
+*/
+
+
 int main() {
     std::vector<int> vec1{1, 2, 8, 11, 40, 99, 113, 200, 201, 230, 330};
 
