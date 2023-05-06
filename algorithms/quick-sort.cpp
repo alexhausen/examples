@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <vector>
 
 // takes the last element as pivot;
 // places the pivot element at its correct position in sorted array;
