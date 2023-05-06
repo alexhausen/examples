@@ -46,6 +46,16 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "queue": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "cassert": "cpp",
+        "map": "cpp",
+        "stack": "cpp",
+        "optional": "cpp",
+        "list": "cpp",
+        "unordered_set": "cpp",
+        "sstream": "cpp",
+        "forward_list": "cpp",
+        "slist": "cpp",
+        "cinttypes": "cpp"
     }
 }
