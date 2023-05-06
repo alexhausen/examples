@@ -1,6 +1,5 @@
 // https://google.github.io/comprehensive-rust/exercises/day-3/safe-ffi-wrapper.html
 
-// TODO: remove this when you're done with your implementation.
 #![allow(unused_imports, unused_variables, dead_code)]
 
 mod ffi {
