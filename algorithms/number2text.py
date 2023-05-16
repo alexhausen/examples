@@ -83,15 +83,14 @@ def number_to_text(arg):
     #     num_pow_1000 += 1
     num_pow_1000 = int(math.log(n, 1000))
     while num_pow_1000 >= 0:
-        p = pow(1000, num_pow_1000)
-        part = n // p
-        part_str = convert_from_1_to_999(part)
+        pow_1000 = pow(1000, num_pow_1000)
+        part_1000 = n // pow_1000
+        part_str = convert_from_1_to_999(part_1000)
         if part_str:
-            n_str += part_str
-            n_str += " " + POWER_1000[num_pow_1000]
+            n_str += part_str + " " + POWER_1000[num_pow_1000]
         n_str = n_str.strip()
         n_str += " "
-        n %= p
+        n %= pow_1000
         num_pow_1000 -= 1
     return n_str.strip()
 
