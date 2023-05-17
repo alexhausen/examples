@@ -50,23 +50,29 @@ POWER_1000 = [
     "billion"
 ]
 
+# remove empty spaces, False, None... from the list
+
+
+def remove_falses(ls):
+    return list(filter(lambda v: v, ls))
+
 
 def convert_from_1_to_999(n):
     # 1 - 999
-    n_str = ""
+    values_str = []
     hundred = n // 100
     if hundred > 0:
-        n_str += NUMBERS_1_TO_9[hundred] + " hundred"
+        values_str.append(NUMBERS_1_TO_9[hundred])
+        values_str.append("hundred")
         n %= 100
     if n < 20:
-        n_str += " " + NUMBERS_1_TO_19[n]
+        values_str.append(NUMBERS_1_TO_19[n])
     else:
         tens = n % 100 // 10
         unit = n % 10
-        n_str += " " + TENS[tens] + " "
-        n_str += NUMBERS_1_TO_9[unit]
-    n_str = n_str.strip()
-    return n_str
+        values_str.append(TENS[tens])
+        values_str.append(NUMBERS_1_TO_9[unit])
+    return values_str
 
 
 def number_to_text(arg):
@@ -74,8 +80,7 @@ def number_to_text(arg):
     # base case
     if n == 0:
         return "zero"
-    n_str = ""
-
+    values_str = []
     # num_pow_1000 = 0
     # temp = n // 1000
     # while temp > 0:
@@ -85,14 +90,15 @@ def number_to_text(arg):
     while num_pow_1000 >= 0:
         pow_1000 = pow(1000, num_pow_1000)
         part_1000 = n // pow_1000
-        part_str = convert_from_1_to_999(part_1000)
-        if part_str:
-            n_str += part_str + " " + POWER_1000[num_pow_1000]
-        n_str = n_str.strip()
-        n_str += " "
+        parts_str = convert_from_1_to_999(part_1000)
+        parts_str = remove_falses(parts_str)
+        if len(parts_str) != 0:
+            parts_str.append(POWER_1000[num_pow_1000])
+        values_str += parts_str
         n %= pow_1000
         num_pow_1000 -= 1
-    return n_str.strip()
+    values_str = remove_falses(values_str)
+    return " ".join(values_str)
 
 
 if __name__ == "__main__":
