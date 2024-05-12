@@ -11,6 +11,7 @@ Hints: #9, #40
 #include <list>
 #include <unordered_set>
 
+// O(n) time, O(m) space
 void remove_dups(std::list<int>& l) {
     std::unordered_set<int> hash;
     auto it = l.begin();
@@ -24,6 +25,7 @@ void remove_dups(std::list<int>& l) {
     }
 }
 
+// O(n^2) time, O(1) space
 void remove_dups_inplace(std::list<int>& l) {
     for (auto it1 = l.begin(); it1 != l.end(); ++it1) {
         auto it2 = it1;

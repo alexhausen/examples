@@ -35,13 +35,13 @@ std::list<int> sum_lists(const std::list<int>& l1, const std::list<int>& l2) {
             int sum = *it1 + carry;
             carry = sum >= 10 ? 1 : 0;
             sum = sum % 10;
-            l.push_back(*it1);
+            l.push_back(sum);
             ++it1;
         } else {
             int sum = *it2 + carry;
             carry = sum >= 10 ? 1 : 0;
             sum = sum % 10;
-            l.push_back(*it2);
+            l.push_back(sum);
             ++it2;
         }
     }

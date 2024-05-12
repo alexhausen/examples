@@ -16,34 +16,58 @@ Hints:#23, #97, #130
 #include <string>
 #include <unordered_map>
 
-bool one_away(const std::string& s1, const std::string& s2) {
-    std::unordered_map<char, int> hash;
-    for (char c : s1) {
-        hash[c]++;
+bool one_replace_away(const std::string& s1, const std::string& s2) {
+    auto n = s1.size();
+    int diff_count = 0;
+    for (auto i = 0; i < n; i++) {
+        if (s1[i] != s2[i]) {
+            if (diff_count > 0) {
+                return false;
+            }
+            diff_count++;
+        }
     }
-    for (char c : s2) {
-        hash[c]--;
+    return true;
+}
+
+bool one_insert_away(const std::string& s1, const std::string& s2) {
+    unsigned i1 = 0;
+    unsigned i2 = 0;
+    while (i1 < s1.size() && i2 < s2.size()) {
+        if (s1[i1] != s2[i2]) {
+            bool already_skipped_once = i1 != i2;            
+            if (already_skipped_once) {
+                return false;
+            }
+            i2++; // skip
+        } else {
+            i1++;
+            i2++;
+        }
     }
-    int inserts = 0;
-    int removes = 0;
-    for (const auto& [k, v] : hash) {
-        if (v > 0)
-            inserts++;
-        if (v < 0)
-            removes++;
+    return true;
+}
+
+bool one_edit_away(const std::string& s1, const std::string& s2) {
+    if (s1.size() == s2.size()) {
+        return one_replace_away(s1, s2);
+    } else if (s1.size() + 1 == s2.size()) {
+        return one_insert_away(s1, s2);
+    } else if (s1.size() - 1 == s2.size()) {
+        return one_insert_away(s2, s1);
     }
-    return (inserts == 0 && removes == 0) ||  // 0 edit
-           (inserts == 1 || removes == 1);    // 1 edit
+    return false;
 }
 
 int main() {
-    assert(one_away("", ""));
-    assert(one_away("", "a"));
-    assert(one_away("a", ""));
-    assert(one_away("pale", "ple"));
-    assert(one_away("pale", "pales"));
-    assert(one_away("pales", "pale"));
-    assert(one_away("pale", "bale"));
-    assert(one_away("pale", "bake") == false);
+    assert(one_edit_away("", ""));
+    assert(one_edit_away("", "a"));
+    assert(one_edit_away("a", ""));
+    assert(one_edit_away("pale", "ple"));
+    assert(one_edit_away("pale", "pales"));
+    assert(one_edit_away("pales", "pale"));
+    assert(one_edit_away("pale", "bale"));
+    assert(one_edit_away("pale", "bake") == false);
+    assert(one_edit_away("pale", "bae") == false);
     std::cout << "OK" << std::endl;
 }

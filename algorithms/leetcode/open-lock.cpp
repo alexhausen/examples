@@ -30,12 +30,12 @@ std::vector<std::string> neighbors(const std::string& current) {
 }
 
 int openLock(const std::vector<std::string>& deadends, std::string target) {
-    const std::set<std::string> dead_ends{deadends.begin(), deadends.end()};
+    const std::vector<std::string> dead_ends{deadends.begin(), deadends.end()};
     if (dead_ends.count("0000"))
         return -1;
     std::queue<std::string> q;
     q.push("0000");
-    std::set<std::string> visited;
+    std::vector<std::string> visited;
     visited.insert("0000");
 
     int count = 0;

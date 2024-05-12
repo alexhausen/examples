@@ -19,6 +19,9 @@ bool is_rotation(const std::string& s1, const std::string& s2) {
     if (s1.size() != s2.size())
         return false;
 
+    std::string s1s1 = s1 + s1;
+    return is_substring(s2, s1s1);
+    /*
     const unsigned n = s1.size();
     unsigned p1 = 0;
     unsigned p2 = 0;
@@ -41,6 +44,7 @@ bool is_rotation(const std::string& s1, const std::string& s2) {
         return is_substring(sub, s1);
     }
     return false;
+    */
 }
 
 int main() {
@@ -56,4 +60,6 @@ int main() {
     assert(is_rotation("waterbottle", "erbottlewat"));
     assert(is_rotation("abcabd", "bdabca"));
     assert(is_rotation("acb", "abc") == false);
+
+    std::cout << "OK" << std::endl;
 }

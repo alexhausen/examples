@@ -16,7 +16,7 @@
 class graph {
    public:
     graph(std::initializer_list<std::tuple<unsigned, unsigned, float>> g) {
-        std::set<unsigned> vertices;
+        std::vector<unsigned> vertices;
         for (const auto& [u, v, _] : g) {
             vertices.insert(u);
             vertices.insert(v);
@@ -59,13 +59,13 @@ class graph {
     std::vector<std::vector<adjacency>> adjacency_list_;
 };
 
-auto is_node_unvisited(unsigned node, const std::set<unsigned>& unvisited_nodes) {
+auto is_node_unvisited(unsigned node, const std::vector<unsigned>& unvisited_nodes) {
     bool unvisited =
         std::find(unvisited_nodes.begin(), unvisited_nodes.end(), node) != unvisited_nodes.end();
     return unvisited;
 }
 
-auto unvisited_neighbors(const graph& g, unsigned node, const std::set<unsigned>& unvisited_nodes)
+auto unvisited_neighbors(const graph& g, unsigned node, const std::vector<unsigned>& unvisited_nodes)
     -> std::vector<unsigned> {
     std::vector<unsigned> unvisited_neighbors;
     std::vector<unsigned> neighbors = g.neighbors(node);
@@ -80,7 +80,7 @@ auto unvisited_neighbors(const graph& g, unsigned node, const std::set<unsigned>
 
 // Pop the node with the shortest distance from the list of unvisited nodes
 auto pop_shortest_unvisited(const std::vector<float>& distances,
-                            std::set<unsigned>& unvisited_nodes) -> unsigned {
+                            std::vector<unsigned>& unvisited_nodes) -> unsigned {
     float shortest_distance = std::numeric_limits<float>::infinity();
     auto shortest_distance_it = unvisited_nodes.end();
     auto it = unvisited_nodes.begin();
@@ -104,7 +104,7 @@ auto shortest_path(const graph& g, unsigned source)
     -> std::pair<std::vector<float>, std::vector<int>> {
     std::vector<float> distances(g.number_of_vertices());
     std::vector<int> path(g.number_of_vertices());
-    std::set<unsigned> unvisited_set;
+    std::vector<unsigned> unvisited_set;
     for (unsigned v = 0; v < g.number_of_vertices(); ++v) {
         distances[v] = INFINITY;
         path[v] = UNDEFINED;

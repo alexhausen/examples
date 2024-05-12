@@ -35,7 +35,7 @@ bool check_palindrome_of_permutation(const std::string& input) {
        if (is_palindrome(permutation)) return true;
     */
 
-    // using bit vector, reduce space, still O(n) space, O(n) time
+    // using bit vector, reduce space, O(n) time
     std::array<bool, 26> odd_chars = {false};
     unsigned str_size = 0;
     for (char c1 : input) {
@@ -47,7 +47,7 @@ bool check_palindrome_of_permutation(const std::string& input) {
     }
     unsigned odd_count = 0;
     for (unsigned i = 0; i < odd_chars.size(); i++) {
-        if (odd_chars[i]) odd_count++;
+        odd_count += odd_chars[i]; // optimizion of: if (odd_chars[i]) odd_count++;
     }
 
     /*

@@ -12,105 +12,49 @@ Hints: #3, #24
 
 #include <cassert>
 #include <iostream>
+#include <list>
 
-struct node {
-    node* next;
-    node* previous;
-    int data;
+using list = std::list<int>;
 
-    node(int data) : next{nullptr}, previous{nullptr}, data{data} {}
-
-    void append_to_tail(int data) {
-        node* new_node = new node(data);
-        node* temp = this;
-        while (temp->next != nullptr) {
-            temp = temp->next;
-        }
-        temp->next = new_node;
-        new_node->previous = temp;
-    }
-};
-
-struct list {
-    node* head;
-
-    list() : head{nullptr} {}
-
-    void append(int data) {
-        if (head == nullptr) {
-            head = new node(data);
+// unstable
+list partition(const list& l, int value) {
+    list part_list;
+    for (auto it = l.cbegin(); it != l.cend(); ++it) {
+        if (*it < value) {
+            part_list.push_front(*it);
         } else {
-            head->append_to_tail(data);
+            part_list.push_back(*it);
         }
     }
-};
-
-bool equals(const list& l1, const list& l2) {
-    const node* n1 = l1.head;
-    const node* n2 = l2.head;
-    if (n1 == nullptr && n2 == nullptr)
-        return true;
-    if (n1 == nullptr || n2 == nullptr)
-        return false;
-    while (n1 != nullptr && n2 != nullptr) {
-        if (n1->data != n2->data)
-            return false;
-        n1 = n1->next;
-        n2 = n2->next;
-    }
-    return n1 == n2;
+    return part_list;
 }
 
-void partition(list& l, int value) {
-    node* pivot = l.head;
-    while (pivot != nullptr) {
-        if (pivot->data == value)
-            break;
-        pivot = pivot->next;
-    }
-    if (pivot == nullptr)
-        return;
-    // if pivot == head?
-    node* n = l.head;
-    while (n != nullptr) {
-        node* next = n->next;
-        node* previous = n->previous;
-        if (n->data < value) {
-            n->next = l.head->next;
-            n->previous = nullptr;
-            l.head = n;
-            if (previous)
-                previous->next = next;
-            if (next && previous) //?
-                next->previous = previous;
+// stable: create 2 lists and concatenate them at the end
+list stable_partition(const list& l, int value) {
+    list l1;
+    list l2;
+    for (auto it = l.begin(); it != l.end(); ++it) {
+        if (*it < value) {
+            l1.push_back(*it);
+        } else {
+            l2.push_back(*it);
         }
-        n = next;
     }
-}
-
-void assert_partition(const list& l, int value) {
-    const node* n = l.head;
-    while (n != nullptr && n->data < value) {
-        n = n->next;
-    }
-    while (n != nullptr) {
-        assert(n->data >= value);
-        n = n->next;
-    }
+    l2.splice(l2.begin(), l1);
+    return l2;
 }
 
 int main() {
-    list list1;
-    list1.append(3);
-    list1.append(5);
-    list1.append(8);
-    list1.append(5);
-    list1.append(10);
-    list1.append(2);
-    list1.append(1);
+    list list1 {3, 5, 8, 5, 10, 2, 1};
+    list part_list1 = partition(list1, 5);
+    assert(list1.size() == part_list1.size());
+    list expected_list1 {1, 2, 3, 5, 8, 5, 10};
+    assert(part_list1 == expected_list1);
 
-    partition(list1, 5);
-    assert_partition(list1, 5);
+    list list2 {3, 5, 8, 5, 10, 2, 1};
+    list part_list2 = stable_partition(list2, 5);
+    assert(list2.size() == part_list2.size());
+    list expected_list2 {3, 2, 1, 5, 8, 5, 10};
 
     std::cout << "OK" << std::endl;
 }
